@@ -1,7 +1,8 @@
 # A-Maze
 
-Builds mazes for you. Built with React + TypeScript + Vite, wrapped for
-iOS/Android with [Capacitor](https://capacitorjs.com/).
+A fresh maze every time — draw your way out with your finger (or mouse).
+Built with React + TypeScript + Vite, wrapped for iOS/Android with
+[Capacitor](https://capacitorjs.com/).
 
 ## Where it runs
 
@@ -14,13 +15,49 @@ https://evenstephen85.github.io/A-Maze_App/
 The same code is set up to be wrapped as real native iOS and Android apps —
 see [Native builds](#native-builds-ios--android) below.
 
+## How it plays
+
+- **Landing page** → **Play** opens the difficulty list; **Settings** is on both.
+- **Five difficulties**, Easy (6×8) to Master (18×24). Each one unlocks when
+  you solve the one before it. Locked ones say what to finish first.
+- **Every maze is new**: a depth-first carve (`src/lib/maze.ts`), so there is
+  exactly one route from the top-left dot to the bottom-right square.
+- **Draw your path**: press on the dot and drag through the corridors. Drag
+  back over your path to rub it out. Lifting your finger keeps the path —
+  press anywhere on it to carry on from there. Fast swipes are sampled in
+  quarter-cell steps so they don't skip cells.
+- **The clock starts on your first step**, not when the maze appears, so
+  looking first is free. **Clear path** keeps the clock running; **New maze**
+  resets it.
+- **Stars** come from your time against each difficulty's targets in
+  `src/data/difficulties.ts` (e.g. Easy: 3★ under 0:15, 2★ under 0:30,
+  otherwise 1★). Best stars and best time are saved per difficulty.
+
+## Settings
+
+- **Show timer** — hides the running clock (your time still shows when you finish)
+- **Path color** and **Maze color** — six of each
+- **Preview** — a maze the size of your current level, part-solved, in your colors
+- **Reset progress** — re-locks everything above Easy
+
+Settings and progress live in `localStorage` (`amaze.settings.v1`,
+`amaze.progress.v1`).
+
 ## Project layout
 
 ```
 src/
-  App.tsx                 the app root
+  App.tsx                 screen switching, owns settings + progress
+  types.ts                shared types
+  data/difficulties.ts    sizes, star targets, unlock rules
+  lib/maze.ts             generate, isOpen, solve
+  lib/drawMaze.ts         canvas rendering (shared by play + preview)
+  lib/scoring.ts          stars and time formatting
+  lib/colors.ts           path / maze color palettes
+  lib/storage.ts          settings + progress persistence
   lib/nativeChrome.ts     native-only tweaks (status bar); no-ops on the web
-  index.css               theme tokens and base styles
+  components/MazeBoard.tsx  the canvas + draw-your-path input
+  screens/                landing, level select, play, settings
 public/                   favicon + web app manifest (copied as-is)
 .github/workflows/        GitHub Pages deploy
 capacitor.config.ts       native app id / name
